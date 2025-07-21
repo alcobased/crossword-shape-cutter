@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crossword Shape Cutter</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <h1>Crossword Shape Cutter</h1>
+
+    <div class="controls">
+      <button id="resetGridBtn">Reset Grid</button>
+      <button id="confirmShapeBtn">Confirm Shape</button>
+      <button id="finishCuttingBtn">Finish Cutting & Load Puzzle</button>
+    </div>
+
+    <div id="crosswordGrid" class="crossword-grid-container"></div>
+
+    <div id="puzzleContainer">
+      <div id="solutionArea" class="puzzle-drop-area">
+        <h2>Solution Area</h2>
+      </div>
+      <div id="shapeBank" class="puzzle-drop-area">
+        <h2>Shape Bank</h2>
+      </div>
+    </div>
+
+    <div id="charInputModal" class="modal-overlay">
+      <div class="modal-content">
+        <h2>Edit Cell</h2>
+        <p>Choose cell type and enter character (optional).</p>
+
+        <div class="cell-type-options">
+          <label>
+            <input
+              type="radio"
+              name="cellType"
+              value="active-char"
+              id="radioActiveChar"
+              checked
+            />
+            Active Character
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="cellType"
+              value="black-boundary"
+              id="radioBlackBoundary"
+            />
+            Black Boundary
+          </label>
+        </div>
+
+        <input
+          type="text"
+          id="charInputField"
+          maxlength="1"
+          placeholder="Type character here"
+        />
+
+        <div class="modal-buttons">
+          <button id="saveCharBtn">Save</button>
+          <button id="cancelCharBtn">Cancel</button>
+          <button id="deleteCellBtn">Delete Cell</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="setup.js"></script>
+    <script src="puzzle.js"></script>
+  </body>
+</html>
