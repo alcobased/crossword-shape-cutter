@@ -1,39 +1,46 @@
 // public/setup.js
 
-const crosswordGridDiv = document.getElementById("crosswordGrid");
-const resetGridBtn = document.getElementById("resetGridBtn");
-const confirmShapeBtn = document.getElementById("confirmShapeBtn");
-const finishCuttingBtn = document.getElementById("finishCuttingBtn");
-const puzzleContainer = document.getElementById("puzzleContainer");
+// Central App object for shared variables and DOM elements
+window.App = {
+  // DOM Elements
+  crosswordGridDiv: document.getElementById("crosswordGrid"),
+  resetGridBtn: document.getElementById("resetGridBtn"),
+  confirmShapeBtn: document.getElementById("confirmShapeBtn"),
+  finishCuttingBtn: document.getElementById("finishCuttingBtn"),
+  puzzleContainer: document.getElementById("puzzleContainer"),
 
-// New DOM elements for the modal
-const charInputModal = document.getElementById("charInputModal");
-const charInputField = document.getElementById("charInputField");
-const saveCharBtn = document.getElementById("saveCharBtn");
-const cancelCharBtn = document.getElementById("cancelCharBtn");
-const deleteCellBtn = document.getElementById("deleteCellBtn"); // New delete button
-const radioActiveChar = document.getElementById("radioActiveChar"); // New radio button
-const radioBlackBoundary = document.getElementById("radioBlackBoundary"); // New radio button
+  // Modal Elements (reused by puzzle.js)
+  charInputModal: document.getElementById("charInputModal"),
+  charInputField: document.getElementById("charInputField"),
+  saveCharBtn: document.getElementById("saveCharBtn"),
+  cancelCharBtn: document.getElementById("cancelCharBtn"),
+  deleteCellBtn: document.getElementById("deleteCellBtn"),
+  radioActiveChar: document.getElementById("radioActiveChar"),
+  radioBlackBoundary: document.getElementById("radioBlackBoundary"),
 
-const CELL_SIZE = 40;
-const GRID_COLS = 15;
-const GRID_ROWS = 10;
+  // Constants
+  CELL_SIZE: 40,
+  GRID_COLS: 15,
+  GRID_ROWS: 10,
 
-crosswordGridDiv.style.gridTemplateColumns = `repeat(${GRID_COLS}, ${CELL_SIZE}px)`;
-crosswordGridDiv.style.gridTemplateRows = `repeat(${GRID_ROWS}, ${CELL_SIZE}px)`;
-crosswordGridDiv.style.width = `${GRID_COLS * CELL_SIZE}px`;
-crosswordGridDiv.style.height = `${GRID_ROWS * CELL_SIZE}px`;
+  // Internal state for setup grid
+  grid: [],
+  currentCellElement: null, // To store the cell being edited in setup mode
+};
 
-let grid = [];
-let currentCellElement = null; // To store the cell being edited
+// Apply initial styles using App.crosswordGridDiv
+App.crosswordGridDiv.style.gridTemplateColumns = `repeat(${App.GRID_COLS}, ${App.CELL_SIZE}px)`;
+App.crosswordGridDiv.style.gridTemplateRows = `repeat(${App.GRID_ROWS}, ${App.CELL_SIZE}px)`;
+App.crosswordGridDiv.style.width = `${App.GRID_COLS * App.CELL_SIZE}px`;
+App.crosswordGridDiv.style.height = `${App.GRID_ROWS * App.CELL_SIZE}px`;
 
 function initializeGrid() {
-  crosswordGridDiv.innerHTML = "";
-  grid = [];
+  App.crosswordGridDiv.innerHTML = "";
+  App.grid = []; // Use App.grid
 
-  for (let r = 0; r < GRID_ROWS; r++) {
-    grid[r] = [];
-    for (let c = 0; c < GRID_COLS; c++) {
+  for (let r = 0; r < App.GRID_ROWS; r++) {
+    App.grid[r] = [];
+    for (let c = 0; c < App.GRID_COLS; c++) {
       const cellElement = document.createElement("div");
       cellElement.classList.add("grid-cell");
       cellElement.dataset.row = r;
@@ -41,145 +48,154 @@ function initializeGrid() {
 
       cellElement.addEventListener("click", handleCellClick);
 
-      crosswordGridDiv.appendChild(cellElement);
+      App.crosswordGridDiv.appendChild(cellElement);
 
-      grid[r][c] = {
-        type: 0, // 0: inactive, 1: active-char, 2: black-boundary
+      App.grid[r][c] = {
+        // Use App.grid
+        type: 0,
         char: "",
         element: cellElement,
       };
     }
   }
-  puzzleContainer.style.display = "none";
-  crosswordGridDiv.style.display = "grid";
-  document.querySelector(".controls").style.display = "flex";
+  App.puzzleContainer.style.display = "none";
+  App.crosswordGridDiv.style.display = "grid";
+  document.querySelector(".controls").style.display = "flex"; // This one is not stored in App, so query it
 }
 
 function handleCellClick(event) {
   const cellElement = event.target;
   const row = parseInt(cellElement.dataset.row);
   const col = parseInt(cellElement.dataset.col);
-  const cellData = grid[row][col];
+  const cellData = App.grid[row][col]; // Use App.grid
 
-  currentCellElement = cellElement; // Store the clicked cell
+  App.currentCellElement = cellElement; // Store the clicked cell globally
 
   // Pre-fill modal based on current cell state
-  charInputField.value = cellData.char;
+  App.charInputField.value = cellData.char;
   if (cellData.type === 1) {
-    // Active Character
-    radioActiveChar.checked = true;
-    charInputField.style.display = "block"; // Show char input for active cells
+    App.radioActiveChar.checked = true;
+    App.charInputField.style.display = "block";
   } else if (cellData.type === 2) {
-    // Black Boundary
-    radioBlackBoundary.checked = true;
-    charInputField.style.display = "none"; // Hide char input for black cells
+    App.radioBlackBoundary.checked = true;
+    App.charInputField.style.display = "none";
   } else {
-    // Inactive (default to active char when opening form for new selection)
-    radioActiveChar.checked = true;
-    charInputField.style.display = "block";
-    charInputField.value = ""; // Clear char input for new inactive cells
+    App.radioActiveChar.checked = true;
+    App.charInputField.style.display = "block";
+    App.charInputField.value = "";
   }
 
-  charInputModal.style.display = "flex"; // Show the modal
-  charInputField.focus(); // Focus the input field
-  charInputField.select(); // Select existing text if any
+  App.charInputModal.style.display = "flex";
+  App.charInputField.focus();
+  App.charInputField.select();
 }
 
 // Event listener for radio button changes within the modal
 document.querySelectorAll('input[name="cellType"]').forEach((radio) => {
   radio.addEventListener("change", (event) => {
     if (event.target.value === "active-char") {
-      charInputField.style.display = "block";
-      charInputField.focus();
-      charInputField.select();
+      App.charInputField.style.display = "block";
+      App.charInputField.focus();
+      App.charInputField.select();
     } else {
-      charInputField.style.display = "none";
-      charInputField.value = ""; // Clear char input if switching to black boundary
+      App.charInputField.style.display = "none";
+      App.charInputField.value = "";
     }
   });
 });
 
 // Event listeners for the modal buttons
-saveCharBtn.addEventListener("click", () => {
-  if (currentCellElement) {
-    const row = parseInt(currentCellElement.dataset.row);
-    const col = parseInt(currentCellElement.dataset.col);
-    const cellData = grid[row][col];
+App.saveCharBtn.addEventListener("click", () => {
+  if (App.currentCellElement) {
+    const row = parseInt(App.currentCellElement.dataset.row);
+    const col = parseInt(App.currentCellElement.dataset.col);
+    const cellData = App.grid[row][col]; // Use App.grid
 
     const selectedType = document.querySelector(
       'input[name="cellType"]:checked'
     ).value;
 
     // Reset classes first
-    currentCellElement.classList.remove("active-char", "black-boundary");
-    currentCellElement.textContent = "";
+    App.currentCellElement.classList.remove("active-char", "black-boundary");
+    App.currentCellElement.textContent = "";
     cellData.char = "";
 
     if (selectedType === "active-char") {
       cellData.type = 1;
-      currentCellElement.classList.add("active-char");
-      const char = charInputField.value.toUpperCase().charAt(0) || "";
+      App.currentCellElement.classList.add("active-char");
+      const char = App.charInputField.value.toUpperCase().charAt(0) || "";
       cellData.char = char;
-      currentCellElement.textContent = char;
+      App.currentCellElement.textContent = char;
     } else if (selectedType === "black-boundary") {
       cellData.type = 2;
-      currentCellElement.classList.add("black-boundary");
-      // Black cells don't have characters
+      App.currentCellElement.classList.add("black-boundary");
     }
   }
-  charInputModal.style.display = "none";
-  charInputField.value = "";
-  currentCellElement = null;
+  App.charInputModal.style.display = "none";
+  App.charInputField.value = "";
+  App.currentCellElement = null;
 });
 
-cancelCharBtn.addEventListener("click", () => {
-  // Simply close the modal without changing the cell's state
-  charInputModal.style.display = "none";
-  charInputField.value = "";
-  currentCellElement = null;
-});
+App.cancelCharBtn.addEventListener("click", () => {
+  if (App.currentCellElement) {
+    // If canceled from setup grid, revert the cell state to what it was before modal was opened.
+    // Or for simplicity here, if it was newly clicked, set it back to inactive (type 0)
+    // This makes sure if a user clicks, then cancels, the cell isn't left as 'active-char'
+    const row = parseInt(App.currentCellElement.dataset.row);
+    const col = parseInt(App.currentCellElement.dataset.col);
+    const cellData = App.grid[row][col]; // Use App.grid
 
-deleteCellBtn.addEventListener("click", () => {
-  // New delete/inactive button logic
-  if (currentCellElement) {
-    const row = parseInt(currentCellElement.dataset.row);
-    const col = parseInt(currentCellElement.dataset.col);
-    const cellData = grid[row][col];
-
-    cellData.type = 0; // Set to inactive
-    cellData.char = ""; // Clear char
-    currentCellElement.classList.remove("active-char", "black-boundary"); // Remove all classes
-    currentCellElement.textContent = ""; // Clear text
+    // Revert cell to inactive only if it was just turned to active-char
+    if (cellData.type === 1 && App.currentCellElement.textContent === "") {
+      // implies it was newly activated
+      cellData.type = 0;
+      App.currentCellElement.classList.remove("active-char");
+    }
   }
-  charInputModal.style.display = "none";
-  charInputField.value = "";
-  currentCellElement = null;
+  App.charInputModal.style.display = "none";
+  App.charInputField.value = "";
+  App.currentCellElement = null;
+});
+
+App.deleteCellBtn.addEventListener("click", () => {
+  if (App.currentCellElement) {
+    const row = parseInt(App.currentCellElement.dataset.row);
+    const col = parseInt(App.currentCellElement.dataset.col);
+    const cellData = App.grid[row][col]; // Use App.grid
+
+    cellData.type = 0;
+    cellData.char = "";
+    App.currentCellElement.classList.remove("active-char", "black-boundary");
+    App.currentCellElement.textContent = "";
+  }
+  App.charInputModal.style.display = "none";
+  App.charInputField.value = "";
+  App.currentCellElement = null;
 });
 
 // Allow hitting Enter to save in the modal
-charInputField.addEventListener("keypress", (e) => {
+App.charInputField.addEventListener("keypress", (e) => {
   if (e.key === "Enter") {
-    saveCharBtn.click();
+    App.saveCharBtn.click();
   }
 });
 
-resetGridBtn.addEventListener("click", () => {
+App.resetGridBtn.addEventListener("click", () => {
   initializeGrid();
   alert("Grid reset! Start cutting a new shape.");
 });
 
-confirmShapeBtn.addEventListener("click", () => {
+App.confirmShapeBtn.addEventListener("click", () => {
   const activeCells = [];
-  let minRow = GRID_ROWS,
+  let minRow = App.GRID_ROWS,
     maxRow = -1,
-    minCol = GRID_COLS,
+    minCol = App.GRID_COLS,
     maxCol = -1;
 
-  for (let r = 0; r < GRID_ROWS; r++) {
-    for (let c = 0; c < GRID_COLS; c++) {
-      const cell = grid[r][c];
+  for (let r = 0; r < App.GRID_ROWS; r++) {
+    for (let c = 0; c < App.GRID_COLS; c++) {
+      const cell = App.grid[r][c]; // Use App.grid
       if (cell.type === 1 || cell.type === 2) {
-        // Include both active and black cells
         activeCells.push({ row: r, col: c, type: cell.type, char: cell.char });
         minRow = Math.min(minRow, r);
         maxRow = Math.max(maxRow, r);
@@ -214,4 +230,6 @@ confirmShapeBtn.addEventListener("click", () => {
 
 initializeGrid();
 
+// Expose initializeSetupGrid to the global scope if needed elsewhere (e.g., tests)
+// Though with App object, it's usually better to call App.initializeSetupGrid()
 window.initializeSetupGrid = initializeGrid;
